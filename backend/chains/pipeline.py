@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.config import settings
+from prism.client import prism_session
 from chains.extraction import extract_fact_ledger
 from chains.ingest import ingest_pdf
 from chains.numeric_utils import fact_survives
@@ -67,6 +68,19 @@ def run_pipeline(
     gate, since translating a rewrite we already know dropped a fact would
     just compound the problem instead of catching it."""
     session_id = session_id or str(uuid.uuid4())
+    with prism_session(session_id):
+        return _run_pipeline(
+            pdf_path, session_id=session_id, languages=languages, audio_dir=audio_dir
+        )
+
+
+def _run_pipeline(
+    pdf_path: str,
+    *,
+    session_id: str,
+    languages: tuple[str, ...],
+    audio_dir: str | None,
+) -> PipelineResult:
     logger.info("pipeline start: session=%s file=%s", session_id, pdf_path)
 
     ingest_result = ingest_pdf(pdf_path)

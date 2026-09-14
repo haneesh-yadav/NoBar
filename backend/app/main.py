@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import documents, library, review
 from db.models import init_db
+from prism.client import close_prism, get_prism_callback_handler
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("nobar.app")
@@ -32,7 +33,13 @@ def on_startup():
             "in backend/.env to enable observability. The app will run without it."
         )
     else:
+        get_prism_callback_handler()
         logger.info("PRISM tracing enabled, project=%s", settings.prismtrace_project_id)
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    close_prism()
 
 
 @app.get("/api/health")

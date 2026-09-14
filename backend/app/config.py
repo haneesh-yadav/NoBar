@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     supabase_service_key: str | None = None
 
     # --- PRISM (Block Convey) ---
-    prismtrace_host: str = "https://prism.blockconvey.com"
+    prismtrace_host: str = "https://prism-api-prod.up.railway.app"
     prismtrace_project_id: str | None = None
     prismtrace_api_key: str | None = None
 

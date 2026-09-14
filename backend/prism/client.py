@@ -18,8 +18,9 @@ Auth header used internally by the SDK is X-PRISMtrace-Key, not Bearer.
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
 from functools import lru_cache
-from typing import Optional
+from typing import Iterator, Optional
 
 from app.config import settings
 
@@ -39,10 +40,9 @@ def _warn_once() -> None:
         _warned = True
 
 
-def get_prism_callback_handler(*, agent_name: str, session_id: str):
-    """Returns a PRISMtraceCallbackHandler for use as a LangChain callback,
-    or None if PRISM isn't configured. LangChain is fine with an empty
-    callback list, so callers should do `callbacks=[h] if h else []`."""
+@lru_cache(maxsize=1)
+def get_prism_callback_handler():
+    """Build one shared LangChain callback handler for the process."""
     if not settings.prism_enabled:
         _warn_once()
         return None
@@ -53,12 +53,33 @@ def get_prism_callback_handler(*, agent_name: str, session_id: str):
             api_key=settings.prismtrace_api_key,
             project_id=settings.prismtrace_project_id,
             host=settings.prismtrace_host,
-            agent_name=agent_name,
-            session_id=session_id,
+            agent_name="nobar-pipeline",
         )
     except Exception:
         logger.exception("Failed to construct PRISM callback handler (continuing without tracing)")
         return None
+
+
+@contextmanager
+def prism_session(session_id: str) -> Iterator[None]:
+    if not settings.prism_enabled:
+        yield
+        return
+    try:
+        import prismtrace
+    except Exception:
+        logger.exception("PRISM SDK unavailable (continuing without tracing)")
+        yield
+        return
+    with prismtrace.session(session_id):
+        yield
+
+
+def close_prism() -> None:
+    handler = get_prism_callback_handler()
+    if handler is not None:
+        handler.close()
+    get_prism_callback_handler.cache_clear()
 
 
 @lru_cache
