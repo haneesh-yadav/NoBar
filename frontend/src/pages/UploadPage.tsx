@@ -67,7 +67,7 @@ export const UploadPage: React.FC = () => {
             setUploading(false);
             clearInterval(interval);
           } else if (data.status === 'failed') {
-            setError('Pipeline processing failed for this document.');
+            setError(data.failure_reason || 'Pipeline processing failed for this document.');
             setUploading(false);
             clearInterval(interval);
           }

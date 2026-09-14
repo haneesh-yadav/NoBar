@@ -23,12 +23,32 @@ def _process_document(document_id: str, pdf_path: str):
         )
         with get_session() as session:
             save_pipeline_result(session, document_id, result)
-    except Exception:
+    except Exception as exc:
         logger.exception("pipeline failed for document %s", document_id)
         with get_session() as session:
             doc = get_document(session, document_id)
             if doc:
                 doc.status = "failed"
+                doc.failure_reason = _classify_pipeline_error(exc)
+
+
+def _classify_pipeline_error(exc: Exception) -> str:
+    message = str(exc).lower()
+    if "localhost:11434" in message or "ollama" in message:
+        return "Ollama is unavailable. Start Ollama and ensure the configured models are installed."
+    if "prism" in message:
+        return "PRISM tracing failed. Check PRISMTRACE_HOST and credentials, then retry."
+    # A bare ConnectError/ConnectTimeout with none of the above substrings
+    # (e.g. a raw WinError/OSError message with no host info) is, in this
+    # pipeline, overwhelmingly an Ollama connectivity issue: PRISM's own
+    # connection failures are now caught non-fatally inside prism/client.py
+    # (see prism_session), so they should never reach this handler at all.
+    if type(exc).__name__ in ("ConnectError", "ConnectTimeout", "ConnectionError"):
+        return (
+            "Could not connect to Ollama at the configured host. "
+            "Start Ollama and ensure the configured models are installed."
+        )
+    return f"Pipeline failed: {type(exc).__name__}. Check the backend logs for details."
 
 
 @router.post("/upload")
@@ -53,7 +73,12 @@ def get_status(document_id: str):
         doc = get_document(session, document_id)
         if doc is None:
             raise HTTPException(404, "document not found")
-        return {"document_id": doc.id, "status": doc.status, "title": doc.title}
+        return {
+            "document_id": doc.id,
+            "status": doc.status,
+            "title": doc.title,
+            "failure_reason": doc.failure_reason or None,
+        }
 
 
 @router.get("/{document_id}")

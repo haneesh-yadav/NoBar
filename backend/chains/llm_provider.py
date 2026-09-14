@@ -1,6 +1,5 @@
 """
-Single place that constructs LLM clients, as context managers that guarantee
-the PRISM trace handler is flushed even if the calling code raises.
+Single place that constructs LLM clients with PRISM callbacks.
 
 Everything else in the pipeline asks for "the generator" or "the verifier"
 through here rather than instantiating ChatOllama directly, so:
@@ -50,7 +49,7 @@ class _TracedChatOllama(ChatOllama):
 
 @contextmanager
 def traced_generator_llm(*, agent_name: str, session_id: str, temperature: float = 0.2, **extra):
-    handler = get_prism_callback_handler(agent_name=agent_name, session_id=session_id)
+    handler = get_prism_callback_handler()
     # repeat_penalty guards against a real failure mode observed with these
     # small local models: degenerating into a repeated-phrase loop (e.g.
     # translation output looping the same 3-word phrase hundreds of times
@@ -63,27 +62,21 @@ def traced_generator_llm(*, agent_name: str, session_id: str, temperature: float
         base_url=settings.ollama_host,
         temperature=temperature,
         callbacks=[handler] if handler else [],
+        metadata={"agent_name": agent_name, "session_id": session_id},
         **extra,
     )
-    try:
-        yield llm
-    finally:
-        if handler is not None:
-            handler.flush()
+    yield llm
 
 
 @contextmanager
 def traced_verifier_llm(*, agent_name: str, session_id: str, temperature: float = 0.0, **extra):
-    handler = get_prism_callback_handler(agent_name=agent_name, session_id=session_id)
+    handler = get_prism_callback_handler()
     llm = _TracedChatOllama(
         model=settings.verifier_model,
         base_url=settings.ollama_host,
         temperature=temperature,
         callbacks=[handler] if handler else [],
+        metadata={"agent_name": agent_name, "session_id": session_id},
         **extra,
     )
-    try:
-        yield llm
-    finally:
-        if handler is not None:
-            handler.flush()
+    yield llm

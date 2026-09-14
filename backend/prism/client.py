@@ -18,6 +18,7 @@ Auth header used internally by the SDK is X-PRISMtrace-Key, not Bearer.
 from __future__ import annotations
 
 import logging
+import sys
 from contextlib import contextmanager
 from functools import lru_cache
 from typing import Iterator, Optional
@@ -62,6 +63,13 @@ def get_prism_callback_handler():
 
 @contextmanager
 def prism_session(session_id: str) -> Iterator[None]:
+    """Every other function in this module treats PRISM failures as
+    non-fatal (see module docstring). This one has to work harder to keep
+    that guarantee: it wraps the *caller's* pipeline code (via `yield`), so
+    a naive `try/except` around the whole thing would also swallow real
+    pipeline exceptions raised inside the `with` block, not just PRISM's
+    own connection failures. Instead we drive `prismtrace.session()`'s
+    __enter__/__exit__ by hand so only PRISM's own failures are caught."""
     if not settings.prism_enabled:
         yield
         return
@@ -71,8 +79,28 @@ def prism_session(session_id: str) -> Iterator[None]:
         logger.exception("PRISM SDK unavailable (continuing without tracing)")
         yield
         return
-    with prismtrace.session(session_id):
+
+    try:
+        session_cm = prismtrace.session(session_id)
+        session_cm.__enter__()
+    except Exception:
+        logger.exception("Failed to start PRISM session (continuing without tracing)")
         yield
+        return
+
+    try:
+        yield
+    except BaseException:
+        try:
+            session_cm.__exit__(*sys.exc_info())
+        except Exception:
+            logger.exception("Failed to close PRISM session (non-fatal)")
+        raise
+    else:
+        try:
+            session_cm.__exit__(None, None, None)
+        except Exception:
+            logger.exception("Failed to close PRISM session (non-fatal)")
 
 
 def close_prism() -> None:
@@ -114,11 +142,32 @@ def trace_manual_step(
         return client.trace_llm(
             model=model,
             input_messages=[{"role": "user", "content": input_text}],
-            output_message=output_text,
+            output=output_text,
             latency_ms=latency_ms,
             session_id=session_id,
             agent_id=agent_id,
         )
     except Exception:
         logger.exception("PRISM manual trace failed (non-fatal, pipeline continues)")
+        return None
+
+
+def trace_pipeline_scores(*, session_id: str, scores: dict) -> Optional[dict]:
+    """Send the completed pipeline evaluation without customer document text."""
+    if not settings.prism_enabled:
+        _warn_once()
+        return None
+    try:
+        client = _manual_client()
+        return client.trace_llm(
+            model="nobar-pipeline-evaluation",
+            input_messages=[],
+            output="pipeline evaluation completed",
+            latency_ms=0,
+            session_id=session_id,
+            agent_name="nobar-pipeline",
+            metadata={"evaluation": scores},
+        )
+    except Exception:
+        logger.exception("PRISM pipeline score trace failed (non-fatal, pipeline continues)")
         return None

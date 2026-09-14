@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.config import settings
-from prism.client import prism_session
+from prism.client import prism_session, trace_pipeline_scores
 from chains.extraction import extract_fact_ledger
 from chains.ingest import ingest_pdf
 from chains.numeric_utils import fact_survives
@@ -53,6 +53,41 @@ class PipelineResult:
     ingest_warnings: list[str] = field(default_factory=list)
     wcag_audit: WcagAuditResult | None = None
     language_versions: dict[str, LanguageVersion] = field(default_factory=dict)
+
+
+def _trace_pipeline_evaluation(result: PipelineResult) -> None:
+    wcag_score = None
+    if result.wcag_audit is not None:
+        if result.wcag_audit.ran_successfully:
+            wcag_score = 100.0 if result.wcag_audit.serious_or_critical_count == 0 else 0.0
+    trace_pipeline_scores(
+        session_id=result.session_id,
+        scores={
+            "status": result.status,
+            "fact_fidelity_score": result.verification.fidelity_score,
+            "readability_grade": result.reading_grade,
+            "wcag_score": wcag_score,
+            "wcag_audit_ran_successfully": (
+                result.wcag_audit.ran_successfully if result.wcag_audit else None
+            ),
+            "wcag_violations_count": (
+                result.wcag_audit.violations_count if result.wcag_audit else None
+            ),
+            "wcag_serious_or_critical_count": (
+                result.wcag_audit.serious_or_critical_count if result.wcag_audit else None
+            ),
+            "wcag_passes_count": result.wcag_audit.passes_count if result.wcag_audit else None,
+            "translation_fidelity_scores": {
+                lang: version.translation_fidelity_score
+                for lang, version in result.language_versions.items()
+                if lang != "en"
+            },
+            "retries_used": result.retries_used,
+            "verified_languages": [
+                lang for lang, version in result.language_versions.items() if version.verified
+            ],
+        },
+    )
 
 
 def run_pipeline(
@@ -145,6 +180,7 @@ def _run_pipeline(
     # first — translating or narrating a rewrite we already know dropped a
     # fact would just produce more unverified artifacts, not fewer.
     if status != "published":
+        _trace_pipeline_evaluation(result)
         return result
 
     en_html = simplified_text_to_html(
@@ -177,6 +213,7 @@ def _run_pipeline(
             ledger, simplified_text, title, lang, session_id=session_id, audio_dir=audio_dir
         )
 
+    _trace_pipeline_evaluation(result)
     return result
 
 

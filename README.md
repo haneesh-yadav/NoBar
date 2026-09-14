@@ -71,7 +71,7 @@ Rewrites the document in accessible plain language (reading grade level 5-8), st
 NoBar uses **PRISM by Block Convey**  its observability, auditability, and verification backbone:
 
 - [x] **LangChain Callback Tracing**: All LLM generation & verification calls pass through `PRISMtraceCallbackHandler`.
-- [x] **Manual SDK Client**: Non-LLM pipeline stages (TTS, WCAG audit, translation) use `PRISMtrace` manual client.
+- [x] **Evaluation Summary Trace**: The completed fact-fidelity, readability, WCAG, and translation scores are sent through the `PRISMtrace` manual client without document text.
 - [x] **Unified Session Audit Trail**: Every stage of a document run shares a single `session_id`, grouping the entire audit trajectory into one inspectable PRISM session.
 - [x] **Custom Fact Fidelity Evaluator**: Configured in PRISM Evaluators Hub to mirror NoBar's 3-tier fidelity score.
 - [x] **Guardrails**:

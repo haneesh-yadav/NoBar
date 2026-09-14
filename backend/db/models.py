@@ -13,7 +13,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, create_engine
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
 from app.config import settings
@@ -40,6 +40,7 @@ class Document(Base):
     source_pdf_path: Mapped[str] = mapped_column(String)
     source_text: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String, default="processing")  # processing|published|needs_review|failed
+    failure_reason: Mapped[str] = mapped_column(String, default="")
     prism_session_id: Mapped[str] = mapped_column(String, default="")
     is_published_to_library: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
@@ -127,3 +128,8 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def init_db() -> None:
     Base.metadata.create_all(engine)
+    if engine.dialect.name == "sqlite":
+        columns = {column["name"] for column in inspect(engine).get_columns("documents")}
+        if "failure_reason" not in columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE documents ADD COLUMN failure_reason VARCHAR DEFAULT ''"))

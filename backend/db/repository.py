@@ -55,9 +55,10 @@ def save_pipeline_result(session: Session, document_id: str, result: PipelineRes
         FactLedgerRecord(document_id=doc.id, ledger_json=result.ledger.model_dump())
     )
 
-    wcag_score = 100.0
+    wcag_score = None
     if result.wcag_audit is not None:
-        wcag_score = 100.0 if result.wcag_audit.serious_or_critical_count == 0 else 0.0
+        if result.wcag_audit.ran_successfully:
+            wcag_score = 100.0 if result.wcag_audit.serious_or_critical_count == 0 else 0.0
         session.add(
             WcagAuditResult(
                 document_id=doc.id,
