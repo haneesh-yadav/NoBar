@@ -1,0 +1,37 @@
+# Core web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# LLM orchestration (no torch — keep disk footprint light on constrained hardware)
+langchain==0.3.14
+langchain-ollama==0.2.2
+langchain-core==0.3.29
+
+# Structured data / validation
+pydantic==2.10.5
+pydantic-settings==2.7.1
+
+# PDF ingestion + OCR fallback
+pdfplumber==0.11.4
+pytesseract==0.3.13
+pdf2image==1.17.0
+Pillow==11.1.0
+ftfy==6.3.1
+
+# Readability scoring for the simplification target
+textstat==0.7.5
+
+# Data layer (SQLite for local dev, Postgres/Supabase via same engine in prod)
+sqlalchemy==2.0.37
+psycopg2-binary==2.9.10
+
+# PRISM (Block Convey) observability SDK
+prismtrace-sdk>=0.4.3
+
+# Utilities
+python-dotenv==1.0.1
+httpx==0.28.1
+
+# Testing
+pytest==8.3.4

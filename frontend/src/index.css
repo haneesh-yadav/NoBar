@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --accent-color: #2563eb;
+  --focus-ring: #2563eb;
+}
+
+html.high-contrast {
+  --bg-primary: #000000 !important;
+  --text-primary: #ffffff !important;
+  --text-secondary: #ffff00 !important;
+  --accent-color: #ffff00 !important;
+  --focus-ring: #00ffff !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.high-contrast * {
+  background-color: transparent;
+  color: inherit;
+  border-color: #ffffff !important;
+}
+
+html.high-contrast a,
+html.high-contrast button {
+  color: #ffff00 !important;
+  text-decoration: underline !important;
+}
+
+html.high-contrast button {
+  border: 2px solid #ffffff !important;
+}
+
+/* Accessible Focus Styles */
+*:focus-visible {
+  outline: 3px solid var(--focus-ring, #2563eb) !important;
+  outline-offset: 2px !important;
+}
+
+/* Font Size Modifiers */
+.font-size-sm {
+  font-size: 0.875rem !important; /* 14px */
+}
+
+.font-size-md {
+  font-size: 1rem !important; /* 16px */
+}
+
+.font-size-lg {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+.font-size-xl {
+  font-size: 1.375rem !important; /* 22px */
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+}

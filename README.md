@@ -1,0 +1,140 @@
+# NoBar — AI Accessibility Auditor for Government/NGO Welfare Scheme Documents
+
+> **Financial Inclusion Theme Fit (Block Convey Hackathon "Money Talks: AI x Finance")**  
+> Pensions, disability aid, agricultural subsidies, and maternal welfare are real cash transfers that fail to reach eligible citizens simply because official scheme documents are complex, unreadable, and inaccessible. **NoBar** bridges this gap: it extracts every criterion, numeric threshold, and benefit into a verified **Fact Ledger**, rewrites the document in plain language (WCAG 2.1 AA compliant + audio narration + multilingual translation), and enforces a strict **3-Tier Verification Gate** traced end-to-end via **PRISM** to ensure zero facts are altered or dropped.
+
+---
+
+## 📊 The Financial Inclusion Gap & Cited Research Statistics
+
+- **40% Take-up Rate**: Only ~40% of Indian citizens apply for government benefits they self-report needing (*Demirguc-Kunt et al., cited via Harvard thesis on welfare take-up*).
+- **Delhi Widow Pension Study**: Only ~34% of eligible women enrolled despite a life-long cash transfer opportunity (*World Bank 2014 survey + RCT*).
+- **BoCW Construction Worker Fund**: Only 40% of ₹50,000 crore in available welfare funds was spent; fewer than 50% of eligible workers even registered (*IDinsight / Indus Action*).
+- **Ayushman Bharat Healthcare Study**: 64% were aware of benefits, but only 37.5% ever utilized them. Top cited barriers were **complexity of enrolment (42.2%)** and **lack of procedural knowledge (53.1%)** (*2026 Ayushman Bharat PHC Study*).
+- **Regulatory Deadline**: US DOJ Title II rule requires public entities serving 50,000+ residents to meet **WCAG 2.1 AA by April 24, 2026**.
+
+---
+
+## 🏗️ Architecture & Pipeline Workflow
+
+```
+               +------------------------------------------------------+
+               |                   NoBar Pipeline                     |
+               +------------------------------------------------------+
+                                          |
+                                    [PDF Ingest]
+                           (pdfplumber + OCR Fallback)
+                                          |
+                                          v
+                                [Fact Extraction]
+                      (Decomposed JSON-mode Schema Calls)
+                                          |
+                                          v
+                               [Plain-Language Rewrite]
+                        (WCAG 2.1 AA Structure + Textstat)
+                                          |
+                                          v
+                         +---------------------------------+
+                         |  3-Tier Fact Fidelity Gate      |
+                         |  1. Deterministic Numeric Diff  |
+                         |  2. LLM-as-Judge (llama3.2:3b)  |
+                         +---------------------------------+
+                                     /         \
+                             (Pass) /           \ (Fail & Max Retries)
+                                   v             v
+                     [WCAG HTML + Audio + Trans]  [Route to Review Queue]
+                                   |             (Status: needs_review)
+                                   v
+                         [Published Library Record]
+```
+
+### 1. Fact Extraction Stage
+Extracts every criterion, numeric threshold, date/period, and benefit into a structured Pydantic `FactLedger` schema. Every fact retains source quotes from the original document.
+
+### 2. Simplification & Plain Language Stage
+Rewrites the document in accessible plain language (reading grade level 5-8), structuring content with semantic headings, lists, and WCAG-compliant landmarks.
+
+### 3. 3-Tier Verification Layer
+- **Tier 1 (Deterministic Diff)**: Pure regex & Devanagari/Tamil numeric normalization (lakhs, crores, dates, percentages). Zero LLM calls; runs instantly.
+- **Tier 2 (LLM-as-Judge)**: Escalate ambiguous paraphrase cases to `llama3.2:3b` (a different model family than the generator `qwen2.5:3b` to prevent self-grading bias).
+- **Corrective Retry Loop**: If fidelity is below 90%, auto-retries simplification with explicit corrective feedback (max 2 retries). If still failing, flags the document as `needs_review` and blocks publishing.
+
+### 4. Accessibility, Translation & Audio
+- **WCAG 2.1 AA HTML Audit**: Validated via `axe-core` (JSDOM automated auditor) for zero critical violations.
+- **Multilingual Translation**: Hindi (`hi`) and Tamil (`ta`) translations with numeric fidelity survival checks.
+- **TTS Audio Narration**: HTML5 audio narration with synced transcript text view.
+
+---
+
+## 🔍 PRISM Integration Checklist
+
+NoBar uses **PRISM by Block Convey**  its observability, auditability, and verification backbone:
+
+- [x] **LangChain Callback Tracing**: All LLM generation & verification calls pass through `PRISMtraceCallbackHandler`.
+- [x] **Manual SDK Client**: Non-LLM pipeline stages (TTS, WCAG audit, translation) use `PRISMtrace` manual client.
+- [x] **Unified Session Audit Trail**: Every stage of a document run shares a single `session_id`, grouping the entire audit trajectory into one inspectable PRISM session.
+- [x] **Custom Fact Fidelity Evaluator**: Configured in PRISM Evaluators Hub to mirror NoBar's 3-tier fidelity score.
+- [x] **Guardrails**:
+  - PII/PHI Detection (Flag mode for sample applicant data).
+  - Prompt Injection Prevention (Block mode on untrusted uploaded PDFs).
+  - Custom Numeric Regex Guardrail.
+- [x] **Alerts**: Automated alerts on `compliance_score < 60` and `guardrail_blocks` spikes.
+- [x] **Root Cause Analysis**: Surfaces systemic simplification failure patterns across batch document runs.
+- [x] **Data Export**: Generates audit-ready evidence packs for regulatory compliance.
+
+---
+
+## 🚀 Quickstart & Local Run Instructions
+
+### Prerequisites
+- Python 3.12+
+- Node.js 20+ and npm
+- Ollama (`qwen2.5:3b` and `llama3.2:3b` pulled)
+
+### 1. Backend Setup
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Set environment variables in `backend/.env` (optional, defaults to local SQLite + PRISM disabled mode):
+```ini
+PRISMTRACE_HOST=https://prism.blockconvey.com
+PRISMTRACE_PROJECT_ID=your-project-uuid
+PRISMTRACE_API_KEY=pt-sk-your-key
+```
+
+Run unit test suite:
+```bash
+PYTHONPATH=backend python -m pytest backend/tests -v
+```
+
+Start FastAPI Server:
+```bash
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open `http://localhost:5173` in your browser.
+
+### 3. CLI Single Document Test
+```bash
+python backend/scripts/run_pipeline_cli.py Dataset/data/gov_myscheme/text_data/oap(1).pdf
+```
+
+### 4. Batch Preprocess Dataset Subset
+```bash
+python backend/scripts/batch_preprocess.py --limit 20
+```
+
+---
+
+## 📜 License
+MIT License. Built for the Block Convey "Money Talks: AI x Finance" Hackathon.

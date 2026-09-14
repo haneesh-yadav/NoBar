@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.env
+.venv/
+venv/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.vite/
+
+# React/Vite
+frontend/dist/
+frontend/.vite/
+
+# Data
+data/raw/*.csv
+data/processed/*.json
+!data/sample/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ollama models cache (if committed locally)
+models/
+
+# Local logs
+*.log
+logs/
+
+# Backend runtime artifacts (regenerated on run)
+backend/storage/*.db
+backend/storage/*.mp3
+backend/storage/audio/*
+!backend/storage/audio/.gitkeep
+backend/storage/uploads/*
+!backend/storage/uploads/.gitkeep
+
+# Dataset download cache (huggingface_hub cache, not the dataset itself)
+Dataset/data/**/.cache/
