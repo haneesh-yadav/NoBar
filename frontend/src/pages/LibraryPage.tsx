@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ShieldCheck, CheckCircle, ArrowRight, BookOpen, Filter } from 'lucide-react';
+import { Search, ShieldCheck, CheckCircle, ArrowRight, BookOpen, Filter, ExternalLink } from 'lucide-react';
 
 interface SchemeItem {
   document_id: string;
   title: string;
   category: string;
+  scheme_url?: string;
   fidelity_score?: number | null;
   wcag_score?: number | null;
   languages_available: string[];
@@ -132,10 +133,22 @@ export const LibraryPage: React.FC = () => {
                 <h3 className="text-lg font-bold text-slate-100 hover:text-blue-400 transition">
                   <Link to={`/document/${scheme.document_id}`}>{scheme.title}</Link>
                 </h3>
+
+                {scheme.scheme_url && (
+                  <a
+                    href={scheme.scheme_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Official Site (myscheme.gov.in)
+                  </a>
+                )}
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 text-xs">
+              <div className="pt-4 border-t border-slate-800 space-y-3">
+                <div className="flex flex-wrap items-center gap-3 text-xs">
                   <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-800">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     {scheme.fidelity_score ? `${scheme.fidelity_score.toFixed(0)}% Fidelity` : '100% Fidelity'}
@@ -145,12 +158,24 @@ export const LibraryPage: React.FC = () => {
                   </span>
                 </div>
 
-                <Link
-                  to={`/document/${scheme.document_id}`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300"
-                >
-                  View Scheme <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                <div className="flex items-center gap-2">
+                  {scheme.scheme_url && (
+                    <a
+                      href={scheme.scheme_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800 px-3 py-1.5 rounded-lg hover:bg-emerald-900/60 transition"
+                    >
+                      Apply / Official Site <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  <Link
+                    to={`/document/${scheme.document_id}`}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300"
+                  >
+                    View Scheme <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

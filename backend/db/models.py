@@ -41,6 +41,7 @@ class Document(Base):
     source_text: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String, default="processing")  # processing|published|needs_review|failed
     failure_reason: Mapped[str] = mapped_column(String, default="")
+    scheme_url: Mapped[str] = mapped_column(String, default="")
     prism_session_id: Mapped[str] = mapped_column(String, default="")
     is_published_to_library: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
@@ -119,6 +120,57 @@ class ReviewQueueEntry(Base):
     document: Mapped[Document] = relationship(back_populates="review_entry")
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String)
+    full_name: Mapped[str] = mapped_column(String, default="")
+    dob: Mapped[str] = mapped_column(String, default="")  # YYYY-MM-DD
+    gender: Mapped[str] = mapped_column(String, default="")
+    marital_status: Mapped[str] = mapped_column(String, default="")
+    disability_status: Mapped[str] = mapped_column(String, default="no")  # no | yes
+    disability_type: Mapped[str] = mapped_column(String, default="")
+    caste_category: Mapped[str] = mapped_column(String, default="")
+    bpl_status: Mapped[str] = mapped_column(String, default="")
+    annual_income: Mapped[float | None] = mapped_column(Float, default=None)
+    employment_type: Mapped[str] = mapped_column(String, default="")
+    state: Mapped[str] = mapped_column(String, default="")
+    district: Mapped[str] = mapped_column(String, default="")
+    pincode: Mapped[str] = mapped_column(String, default="")
+    aadhaar_masked: Mapped[str] = mapped_column(String, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+    saved_schemes: Mapped[list["SavedScheme"]] = relationship(back_populates="user")
+    applications: Mapped[list["SchemeApplication"]] = relationship(back_populates="user")
+
+
+class SavedScheme(Base):
+    __tablename__ = "saved_schemes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+    user: Mapped[User] = relationship(back_populates="saved_schemes")
+    document: Mapped[Document] = relationship()
+
+
+class SchemeApplication(Base):
+    __tablename__ = "scheme_applications"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"))
+    status: Mapped[str] = mapped_column(String, default="submitted")  # submitted|in_progress|approved|rejected
+    applied_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+    user: Mapped[User] = relationship(back_populates="applications")
+    document: Mapped[Document] = relationship()
+
+
 engine = create_engine(
     settings.database_url,
     connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {},
@@ -133,3 +185,6 @@ def init_db() -> None:
         if "failure_reason" not in columns:
             with engine.begin() as connection:
                 connection.execute(text("ALTER TABLE documents ADD COLUMN failure_reason VARCHAR DEFAULT ''"))
+        if "scheme_url" not in columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE documents ADD COLUMN scheme_url VARCHAR DEFAULT ''"))

@@ -15,8 +15,11 @@ from db.models import (
     EvaluationScore,
     FactLedgerRecord,
     ReviewQueueEntry,
+    SavedScheme,
+    SchemeApplication,
     SessionLocal,
     SimplifiedVersion,
+    User,
     WcagAuditResult,
 )
 
@@ -50,6 +53,10 @@ def save_pipeline_result(session: Session, document_id: str, result: PipelineRes
     doc.source_text = result.source_text
     doc.status = result.status
     doc.prism_session_id = result.session_id
+    if not doc.scheme_url:
+        from app.scheme_links import build_scheme_url
+
+        doc.scheme_url = build_scheme_url(doc.title, source_text=result.source_text)
 
     session.add(
         FactLedgerRecord(document_id=doc.id, ledger_json=result.ledger.model_dump())
@@ -158,5 +165,97 @@ def list_review_queue(session: Session) -> list[ReviewQueueEntry]:
         session.query(ReviewQueueEntry)
         .filter(ReviewQueueEntry.status == "open")
         .order_by(ReviewQueueEntry.created_at.desc())
+        .all()
+    )
+
+
+# ---------------------------------------------------------------------------
+# Users / saved schemes / applications
+# ---------------------------------------------------------------------------
+
+
+def create_user(
+    session: Session, *, email: str, password_hash: str, full_name: str = ""
+) -> User:
+    user = User(email=email.lower().strip(), password_hash=password_hash, full_name=full_name)
+    session.add(user)
+    session.flush()
+    return user
+
+
+def get_user_by_email(session: Session, email: str) -> User | None:
+    return session.query(User).filter(User.email == email.strip().lower()).first()
+
+
+def get_user(session: Session, user_id: str) -> User | None:
+    return session.get(User, user_id)
+
+
+def update_user_profile(session: Session, user: User, updates: dict) -> User:
+    for field, value in updates.items():
+        if not hasattr(user, field):
+            continue
+        setattr(user, field, value)
+    session.flush()
+    return user
+
+
+def save_scheme_for_user(session: Session, user_id: str, document_id: str) -> SavedScheme:
+    existing = (
+        session.query(SavedScheme)
+        .filter(SavedScheme.user_id == user_id, SavedScheme.document_id == document_id)
+        .first()
+    )
+    if existing:
+        return existing
+    entry = SavedScheme(user_id=user_id, document_id=document_id)
+    session.add(entry)
+    session.flush()
+    return entry
+
+
+def unsave_scheme_for_user(session: Session, user_id: str, document_id: str) -> None:
+    session.query(SavedScheme).filter(
+        SavedScheme.user_id == user_id, SavedScheme.document_id == document_id
+    ).delete()
+
+
+def is_scheme_saved(session: Session, user_id: str, document_id: str) -> bool:
+    return (
+        session.query(SavedScheme)
+        .filter(SavedScheme.user_id == user_id, SavedScheme.document_id == document_id)
+        .first()
+        is not None
+    )
+
+
+def apply_to_scheme(session: Session, user_id: str, document_id: str) -> SchemeApplication:
+    existing = (
+        session.query(SchemeApplication)
+        .filter(SchemeApplication.user_id == user_id, SchemeApplication.document_id == document_id)
+        .first()
+    )
+    if existing:
+        return existing
+    entry = SchemeApplication(user_id=user_id, document_id=document_id, status="submitted")
+    session.add(entry)
+    session.flush()
+    return entry
+
+
+def list_saved_schemes(session: Session, user_id: str) -> list[SavedScheme]:
+    return (
+        session.query(SavedScheme)
+        .filter(SavedScheme.user_id == user_id)
+        .order_by(SavedScheme.created_at.desc())
+        .all()
+    )
+
+
+def list_applications(session: Session, user_id: str) -> list[SchemeApplication]:
+    return (
+        session.query(SchemeApplication)
+        .filter(SchemeApplication.user_id == user_id)
+        .order_by(SchemeApplication.applied_at.desc())
         .all()
     )

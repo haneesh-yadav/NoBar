@@ -16,6 +16,7 @@ def get_library():
                 "document_id": d.id,
                 "title": d.title,
                 "category": d.category,
+                "scheme_url": d.scheme_url,
                 "fidelity_score": d.evaluation.fidelity_score if d.evaluation else None,
                 "wcag_score": d.evaluation.wcag_score if d.evaluation else None,
                 "languages_available": [v.language for v in d.versions],

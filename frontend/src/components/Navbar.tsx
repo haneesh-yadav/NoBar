@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Eye, Type, ShieldCheck, FileText, Upload, AlertCircle } from 'lucide-react';
+import { Eye, Type, ShieldCheck, FileText, Upload, AlertCircle, LogIn, UserRound, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
   highContrast: boolean;
@@ -20,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setLanguage,
 }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const handleFontSizeChange = (delta: 'inc' | 'dec' | 'reset') => {
     if (delta === 'inc') {
@@ -110,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </Link>
 
-        <nav aria-label="Main Navigation" className="flex items-center gap-1 sm:gap-4">
+        <nav aria-label="Main Navigation" className="flex items-center gap-1 sm:gap-4 flex-wrap">
           <Link
             to="/upload"
             className={`flex items-center gap-1.5 px-3 py-2 rounded-md font-medium text-sm transition ${
@@ -146,6 +148,43 @@ export const Navbar: React.FC<NavbarProps> = ({
             <AlertCircle className="w-4 h-4 text-amber-400" aria-hidden="true" />
             Review Queue
           </Link>
+
+          {user ? (
+            <div className="flex items-center gap-1.5">
+              <Link
+                to="/profile"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-md font-medium text-sm transition ${
+                  location.pathname === '/profile'
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+                aria-label="My profile and entitlement report"
+              >
+                <UserRound className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+                <span className="max-w-[120px] truncate">{user.full_name || user.email}</span>
+              </Link>
+              <button
+                onClick={logout}
+                title="Sign out"
+                aria-label="Sign out"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-md font-medium text-sm text-slate-300 hover:bg-slate-800 hover:text-rose-300 transition"
+              >
+                <LogOut className="w-4 h-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/auth/login"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md font-medium text-sm transition ${
+                location.pathname === '/auth/login' || location.pathname === '/auth/register'
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <LogIn className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+              Sign In / Register
+            </Link>
+          )}
         </nav>
       </div>
     </header>

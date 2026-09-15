@@ -93,6 +93,7 @@ def get_document_detail(document_id: str):
             "title": doc.title,
             "status": doc.status,
             "category": doc.category,
+            "scheme_url": doc.scheme_url,
             "prism_session_id": doc.prism_session_id,
             "fact_ledger": doc.fact_ledger.ledger_json if doc.fact_ledger else None,
             "versions": [

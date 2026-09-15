@@ -66,6 +66,36 @@ Rewrites the document in accessible plain language (reading grade level 5-8), st
 
 ---
 
+## 👤 Citizen Login, Scheme Links & Entitlement Report (PDF)
+
+Every published scheme now carries a link straight to its **official site** on the Government of India's MyScheme portal (`https://www.myscheme.gov.in`). The link is picked automatically: an explicit URL in the source text wins, otherwise a MyScheme search for the scheme title is built.
+
+Citizens can **Sign Up / Sign In** (JWT login, `pbkdf2` password hashing) and build a profile: DOB, gender, marital status, caste category, disability status, BPL status, annual income, employment type, state/district. A deterministic, rule-free matcher (no LLM call) then cross-references the profile against each published scheme's verified Fact Ledger to produce:
+
+- **Schemes You Match** — with the *reason* for the match.
+- **Saved Schemes** and **My Applications** (saved/applied per scheme).
+- **Download My Report (PDF)** — a single entitlement report containing all profile details, matched schemes, saved items, and applications, generated server-side with `reportlab` and streamed to the browser.
+
+Registration & report endpoints (all under `/api`, auth via `Authorization: Bearer <jwt>`):
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/auth/register`, `POST /api/auth/login` | Create account / obtain JWT |
+| `GET /api/users/me`, `PUT /api/users/me` | Read / update profile |
+| `GET /api/users/me/schemes` | `{ matched, saved, applications }` |
+| `GET /api/users/me/schemes/pdf` | Download the entitlement report PDF |
+| `POST|DELETE /api/users/me/schemes/{id}/save`, `POST .../apply` | Save / apply to a scheme |
+
+Set a `JWT_SECRET` in `backend/.env` (a random value is generated and persisted on first boot if absent).
+
+To populate the library instantly **without Ollama** (demo records with real outcome data + official links), run:
+
+```bash
+python backend/scripts/seed_demo_data.py
+```
+
+---
+
 ## 🔍 PRISM Integration Checklist
 
 NoBar uses **PRISM by Block Convey**  its observability, auditability, and verification backbone:
@@ -104,6 +134,9 @@ Set environment variables in `backend/.env` (optional, defaults to local SQLite 
 PRISMTRACE_HOST=https://prism.blockconvey.com
 PRISMTRACE_PROJECT_ID=your-project-uuid
 PRISMTRACE_API_KEY=pt-sk-your-key
+
+# Optional JWT signing key for the citizen login feature (auto-generated if absent)
+JWT_SECRET=change-me-to-a-long-random-string
 ```
 
 Run unit test suite:

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import documents, library, review
+from app.routers import auth, documents, library, review, users
 from db.models import init_db
 from prism.client import close_prism, get_prism_callback_handler
 
@@ -55,3 +55,5 @@ def health():
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(library.router, prefix="/api/library", tags=["library"])
 app.include_router(review.router, prefix="/api/review", tags=["review"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])

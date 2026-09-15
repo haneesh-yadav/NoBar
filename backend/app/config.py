@@ -58,5 +58,9 @@ class Settings(BaseSettings):
     # --- CORS ---
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
+    # --- Auth (HMAC-signed JWTs). Override JWT_SECRET in production/.env. ---
+    jwt_secret: str = "nobar-dev-secret-change-me"
+    jwt_expiry_minutes: int = 60 * 24
+
 
 settings = Settings()
