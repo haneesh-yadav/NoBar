@@ -175,9 +175,21 @@ def list_review_queue(session: Session) -> list[ReviewQueueEntry]:
 
 
 def create_user(
-    session: Session, *, email: str, password_hash: str, full_name: str = ""
+    session: Session,
+    *,
+    email: str,
+    password_hash: str,
+    full_name: str = "",
+    aadhaar_hash: str | None = None,
+    aadhaar_masked: str = "",
 ) -> User:
-    user = User(email=email.lower().strip(), password_hash=password_hash, full_name=full_name)
+    user = User(
+        email=email.lower().strip(),
+        password_hash=password_hash,
+        full_name=full_name,
+        aadhaar_hash=aadhaar_hash,
+        aadhaar_masked=aadhaar_masked,
+    )
     session.add(user)
     session.flush()
     return user
@@ -185,6 +197,10 @@ def create_user(
 
 def get_user_by_email(session: Session, email: str) -> User | None:
     return session.query(User).filter(User.email == email.strip().lower()).first()
+
+
+def get_user_by_aadhaar(session: Session, aadhaar_hash: str) -> User | None:
+    return session.query(User).filter(User.aadhaar_hash == aadhaar_hash).first()
 
 
 def get_user(session: Session, user_id: str) -> User | None:

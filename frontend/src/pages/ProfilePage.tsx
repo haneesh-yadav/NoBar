@@ -177,7 +177,9 @@ export const ProfilePage: React.FC = () => {
           <div>
             <h1 className="text-2xl font-extrabold text-slate-100">{user.full_name || 'My Profile'}</h1>
             <p className="text-sm text-slate-400">
-              {user.email} • {user.state ? `${user.state}${user.district ? ', ' + user.district : ''}` : 'Complete your profile for matched schemes'}
+              {user.aadhaar_masked || user.email}
+              {user.aadhaar_masked && user.email && !user.email.startsWith('aadhaar-') ? ` • ${user.email}` : ''}
+              {user.state ? ` • ${user.state}${user.district ? ', ' + user.district : ''}` : ' • Complete your profile for matched schemes'}
             </p>
           </div>
         </div>

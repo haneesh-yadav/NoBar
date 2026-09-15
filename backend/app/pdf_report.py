@@ -73,7 +73,7 @@ def build_user_report_pdf(
     story = [
         Paragraph("NoBar — Entitlement & Profile Report", title_style),
         Paragraph(
-            _clean(f"Generated for {user["full_name"] or user["email"]} on {datetime.now().strftime('%d %b %Y, %H:%M')}"),
+            _clean(f"Generated for {user['full_name'] or user.get('aadhaar_masked') or 'Citizen'} on {datetime.now().strftime('%d %b %Y, %H:%M')}"),
             subtitle_style,
         ),
         Spacer(1, 6),
@@ -83,7 +83,7 @@ def build_user_report_pdf(
     story.append(Paragraph("1. Your Profile Details", h2))
     rows = [
         ["Full name", _maybe([("", user["full_name"])])],
-        ["Email (login ID)", _clean(user["email"])],
+        ["Login ID (email / Aadhaar)", _clean(user.get("aadhaar_masked") or user["email"])],
         ["Date of birth", _maybe([("", user["dob"])])],
         ["Gender", _maybe([("", user["gender"])])],
         ["Marital status", _maybe([("", user["marital_status"])])],

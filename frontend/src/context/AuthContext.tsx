@@ -24,7 +24,8 @@ interface AuthContextValue {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string) => Promise<void>;
+  register: (email: string, password: string, fullName: string, aadhaar?: string) => Promise<void>;
+  loginWithAadhaar: (aadhaar: string, otp: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -65,13 +66,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(data.user);
   };
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (email: string, password: string, fullName: string, aadhaar?: string) => {
     const data = await apiFetch<{ token: string; user: UserProfile }>('/api/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, full_name: fullName }),
+      body: JSON.stringify({ email, password, full_name: fullName, aadhaar: aadhaar ?? '' }),
     });
     setToken(data.token);
     setUser(data.user);
+  };
+
+  const loginWithAadhaar = async (aadhaar: string, otp: string): Promise<boolean> => {
+    const data = await apiFetch<{ token: string; user: UserProfile; created: boolean }>(
+      '/api/auth/aadhaar/login',
+      { method: 'POST', body: JSON.stringify({ aadhaar, otp }) },
+    );
+    setToken(data.token);
+    setUser(data.user);
+    return data.created ?? false;
   };
 
   const logout = () => {
@@ -88,7 +99,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, loginWithAadhaar, logout, updateProfile, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -140,6 +140,7 @@ class User(Base):
     district: Mapped[str] = mapped_column(String, default="")
     pincode: Mapped[str] = mapped_column(String, default="")
     aadhaar_masked: Mapped[str] = mapped_column(String, default="")
+    aadhaar_hash: Mapped[str | None] = mapped_column(String, unique=True, nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
     saved_schemes: Mapped[list["SavedScheme"]] = relationship(back_populates="user")
@@ -188,3 +189,7 @@ def init_db() -> None:
         if "scheme_url" not in columns:
             with engine.begin() as connection:
                 connection.execute(text("ALTER TABLE documents ADD COLUMN scheme_url VARCHAR DEFAULT ''"))
+        user_columns = {c["name"] for c in inspect(engine).get_columns("users")} if inspect(engine).has_table("users") else set()
+        if user_columns and "aadhaar_hash" not in user_columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE users ADD COLUMN aadhaar_hash VARCHAR"))

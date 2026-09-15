@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -18,6 +19,34 @@ import jwt
 from app.config import settings
 
 _PBKDF2_ITERATIONS = 200_000
+_AADHAAR_RE = re.compile(r"^\d{12}$")
+
+
+def normalize_aadhaar(value: str) -> str:
+    """Return the 12 digits with any spaces/dashes removed. Raises ValueError
+    if the value is not a valid 12-digit Aadhaar number."""
+    digits = re.sub(r"[\s\-]", "", value or "")
+    if not _AADHAAR_RE.match(digits):
+        raise ValueError("Aadhaar number must be exactly 12 digits")
+    return digits
+
+
+def aadhaar_digest(aadhaar: str) -> str:
+    """SHA-256 of the normalized Aadhaar number — used only for lookups so the
+    full number is never stored in the database."""
+    return hashlib.sha256(normalize_aadhaar(aadhaar).encode("ascii")).hexdigest()
+
+
+def mask_aadhaar(aadhaar: str) -> str:
+    """'XXXX-XXXX-<last4>' display form."""
+    digits = normalize_aadhaar(aadhaar)
+    return f"XXXX-XXXX-{digits[-4:]}"
+
+
+def aadhaar_placeholder_email(digest: str) -> str:
+    """Deterministic internal email for Aadhaar-first accounts (never shown as
+    a real contact address). Uniqueness is guaranteed by the digest."""
+    return f"aadhaar-{digest[:12]}@nobar.local"
 
 
 def hash_password(password: str) -> str:

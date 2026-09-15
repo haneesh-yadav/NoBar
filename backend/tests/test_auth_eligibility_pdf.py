@@ -4,15 +4,28 @@ generation, deterministic eligibility matching, and the citizen PDF report.
 All pure Python — no Ollama, no network — so they run in milliseconds.
 """
 
+import os
+import tempfile
 from types import SimpleNamespace
 
-from app.eligibility import age_from_dob, match_scheme, matched_schemes
-from app.pdf_report import build_user_report_pdf
-from app.scheme_links import build_scheme_url, myscheme_search_url
-from app.security import (
+# Hermetic database: isolate every DB-backed test from the dev storage db.
+_TEST_DB = os.path.join(tempfile.gettempdir(), "nobar_test_auth.db")
+if os.path.exists(_TEST_DB):
+    os.remove(_TEST_DB)
+os.environ["DATABASE_URL"] = f"sqlite:///{_TEST_DB}"
+
+from app.aadhaar_demo import DEMO_CITIZENS, DEMO_OTP, fetch_aadhaar_details, otp_matches  # noqa: E402
+from app.eligibility import age_from_dob, match_scheme, matched_schemes  # noqa: E402
+from app.pdf_report import build_user_report_pdf  # noqa: E402
+from app.scheme_links import build_scheme_url, myscheme_search_url  # noqa: E402
+from app.security import (  # noqa: E402
+    aadhaar_digest,
+    aadhaar_placeholder_email,
     create_access_token,
     decode_access_token,
     hash_password,
+    mask_aadhaar,
+    normalize_aadhaar,
     verify_password,
 )
 
@@ -249,3 +262,92 @@ def test_build_user_report_pdf_returns_valid_pdf():
     )
     assert pdf[:4] == b"%PDF"
     assert len(pdf) > 1000
+
+
+# ------------------------------------------------------------ aadhaar (pure)
+def test_aadhaar_normalize_mask_digest():
+    assert normalize_aadhaar("1111 2222 3333") == "111122223333"
+    assert normalize_aadhaar("1111-2222-3333") == "111122223333"
+    assert mask_aadhaar("111122223333") == "XXXX-XXXX-3333"
+    digest = aadhaar_digest("1111 2222 3333")
+    assert digest == aadhaar_digest("111122223333")  # stable, format-independent
+    assert len(digest) == 64  # sha256 hex
+    assert "111122223333" not in digest  # number is never recoverable
+    for bad in ("1234", "1234567890123", "abcd22223333", ""):
+        try:
+            normalize_aadhaar(bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"{bad!r} should have been rejected")
+
+
+def test_aadhaar_placeholder_email_unique():
+    a = aadhaar_placeholder_email("ab" * 32)
+    b = aadhaar_placeholder_email("cd" * 32)
+    assert a != b and "@nobar.local" in a
+
+
+def test_aadhaar_demo_details_stable_and_otp():
+    d1 = fetch_aadhaar_details("555566667777")
+    d2 = fetch_aadhaar_details("5555 6666 7777")  # same digits, different formatting
+    assert d1 == d2
+    assert d1["pincode"] and d1["state"] and len(d1["dob"]) == 10
+    assert DEMO_CITIZENS["111122223333"]["full_name"] == "Asha Kumari Singh"
+    assert otp_matches("111122223333", DEMO_OTP)
+    assert not otp_matches("111122223333", "000000")
+
+
+# ------------------------------------------------------ aadhaar api (http)
+def _client():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    return TestClient(app)
+
+
+def test_aadhaar_request_otp_endpoint():
+    with _client() as c:
+        r = c.post("/api/auth/aadhaar/request-otp", json={"aadhaar": "111122223333"})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["otp"] == DEMO_OTP and body["demo"] is True
+        assert body["masked_aadhaar"] == "XXXX-XXXX-3333"
+        assert body["details"]["full_name"] == "Asha Kumari Singh"
+        assert c.post("/api/auth/aadhaar/request-otp", json={"aadhaar": "1234"}).status_code == 422
+
+
+def test_aadhaar_login_creates_prefilled_profile():
+    with _client() as c:
+        r = c.post("/api/auth/aadhaar/login", json={"aadhaar": "222222222222", "otp": DEMO_OTP})
+        assert r.status_code == 200
+        body = r.json()
+        assert body["created"] is True
+        assert body["user"]["full_name"] == "Rahul Verma"
+        assert body["user"]["gender"] == "Male"
+        assert body["user"]["state"] == "Madhya Pradesh"
+        assert body["user"]["aadhaar_masked"] == "XXXX-XXXX-2222"
+        # token works
+        me = c.get("/api/users/me", headers={"Authorization": f"Bearer {body['token']}"})
+        assert me.status_code == 200 and me.json()["id"] == body["user"]["id"]
+
+
+def test_aadhaar_login_existing_account_and_otp_guard():
+    email = "aadhaar-link@example.com"
+    with _client() as c:
+        reg = c.post(
+            "/api/auth/register",
+            json={"email": email, "password": "secret123", "full_name": "Linked User", "aadhaar": "333333333333"},
+        )
+        assert reg.status_code == 200
+        # wrong OTP rejected
+        bad = c.post("/api/auth/aadhaar/login", json={"aadhaar": "333333333333", "otp": "000000"})
+        assert bad.status_code == 401
+        # correct OTP signs into the SAME account (no new row)
+        ok = c.post("/api/auth/aadhaar/login", json={"aadhaar": "333333333333", "otp": DEMO_OTP})
+        assert ok.status_code == 200
+        assert ok.json()["created"] is False
+        assert ok.json()["user"]["id"] == reg.json()["user"]["id"]
+        # request-otp reports registered
+        otp_resp = c.post("/api/auth/aadhaar/request-otp", json={"aadhaar": "333333333333"})
+        assert otp_resp.json()["registered"] is True

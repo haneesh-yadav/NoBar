@@ -70,7 +70,7 @@ Rewrites the document in accessible plain language (reading grade level 5-8), st
 
 Every published scheme now carries a link straight to its **official site** on the Government of India's MyScheme portal (`https://www.myscheme.gov.in`). The link is picked automatically: an explicit URL in the source text wins, otherwise a MyScheme search for the scheme title is built.
 
-Citizens can **Sign Up / Sign In** (JWT login, `pbkdf2` password hashing) and build a profile: DOB, gender, marital status, caste category, disability status, BPL status, annual income, employment type, state/district. A deterministic, rule-free matcher (no LLM call) then cross-references the profile against each published scheme's verified Fact Ledger to produce:
+Citizens can **Sign Up / Sign In** (JWT login, `pbkdf2` password hashing) — or simply **Sign In with Aadhaar**: enter a 12-digit Aadhaar number, receive an OTP (`123456` in the demo), and NoBar fetches the citizen's details (name, DOB, gender, state, district) and signs them in — creating a pre-filled profile on first use. Aadhaar authentication is a simulated UIDAI stand-in (no real citizen data; only a SHA-256 digest of the number plus the last-4 mask are ever stored). Then a deterministic, rule-free matcher (no LLM call) cross-references the profile against each published scheme's verified Fact Ledger to produce:
 
 - **Schemes You Match** — with the *reason* for the match.
 - **Saved Schemes** and **My Applications** (saved/applied per scheme).
@@ -81,10 +81,14 @@ Registration & report endpoints (all under `/api`, auth via `Authorization: Bear
 | Endpoint | Purpose |
 | --- | --- |
 | `POST /api/auth/register`, `POST /api/auth/login` | Create account / obtain JWT |
+| `POST /api/auth/aadhaar/request-otp` | Send (simulated) Aadhaar OTP; returns fetched details + demo OTP |
+| `POST /api/auth/aadhaar/login` | Sign in via Aadhaar OTP — pre-fills + creates an account on first use |
 | `GET /api/users/me`, `PUT /api/users/me` | Read / update profile |
 | `GET /api/users/me/schemes` | `{ matched, saved, applications }` |
 | `GET /api/users/me/schemes/pdf` | Download the entitlement report PDF |
-| `POST|DELETE /api/users/me/schemes/{id}/save`, `POST .../apply` | Save / apply to a scheme |
+| `POST\|DELETE /api/users/me/schemes/{id}/save`, `POST .../apply` | Save / apply to a scheme |
+
+Try these demo Aadhaar numbers on the login page: `1111 2222 3333`, `2222 2222 2222`, `3333 3333 3333`, `4444 4444 4444` (OTP is always `123456`).
 
 Set a `JWT_SECRET` in `backend/.env` (a random value is generated and persisted on first boot if absent).
 
