@@ -92,11 +92,14 @@ Try these demo Aadhaar numbers on the login page: `1111 2222 3333`, `2222 2222 2
 
 Set a `JWT_SECRET` in `backend/.env` (a random value is generated and persisted on first boot if absent).
 
-To populate the library instantly **without Ollama** (demo records with real outcome data + official links), run:
+To populate the library instantly **without Ollama** (demo records with real outcome data + official links + pre-translated **English / Hindi / Tamil** versions), run:
 
 ```bash
-python backend/scripts/seed_demo_data.py
+python backend/scripts/seed_demo_data.py        # first seed
+python backend/scripts/seed_demo_data.py --force  # re-seed with translations
 ```
+
+Every scheme page now has a **View Language: EN / हिं / தமிழ்** switch (only languages actually present are selectable) plus a **Listen — Read Aloud** button that reads the current language aloud using the browser's built-in screen-reader voice (no server audio needed); when a pipeline-generated studio recording exists, it is used instead.
 
 ---
 

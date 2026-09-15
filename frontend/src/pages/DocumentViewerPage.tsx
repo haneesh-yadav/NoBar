@@ -139,13 +139,17 @@ export const DocumentViewerPage: React.FC<{ language: string; setLanguage: (lang
     );
   }
 
-  // Get requested language version, fallback to English if not present
+  // Language versions actually present for this document.
+  const availableLanguages = doc.versions.map((v) => v.language);
+  const effectiveLanguage = availableLanguages.includes(language) ? language : 'en';
+
+  // Get requested language version, English always as a fallback.
   const currentVersion =
-    doc.versions.find((v) => v.language === language) ||
+    doc.versions.find((v) => v.language === effectiveLanguage) ||
     doc.versions.find((v) => v.language === 'en') ||
     doc.versions[0];
 
-  const isTranslated = language !== 'en';
+  const isTranslated = effectiveLanguage !== 'en' && availableLanguages.includes(effectiveLanguage);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
@@ -202,19 +206,28 @@ export const DocumentViewerPage: React.FC<{ language: string; setLanguage: (lang
             <Globe className="w-4 h-4 text-blue-400" />
             <span className="text-xs text-slate-300">View Language:</span>
             <div className="flex items-center gap-1">
-              {['en', 'hi', 'ta'].map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2.5 py-1 rounded text-xs font-bold transition ${
-                    language === lang
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {lang.toUpperCase()}
-                </button>
-              ))}
+              {['en', 'hi', 'ta'].map((lang) => {
+                const available = availableLanguages.includes(lang) || lang === 'en';
+                const active = effectiveLanguage === lang;
+                return (
+                  <button
+                    key={lang}
+                    disabled={!available}
+                    onClick={() => setLanguage(lang)}
+                    title={available ? '' : `Not translated to ${lang.toUpperCase()} yet`}
+                    aria-pressed={active}
+                    className={`px-2.5 py-1 rounded text-xs font-bold transition ${
+                      !available
+                        ? 'bg-slate-900 text-slate-600 cursor-not-allowed line-through'
+                        : active
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -246,13 +259,18 @@ export const DocumentViewerPage: React.FC<{ language: string; setLanguage: (lang
         {isTranslated && (
           <div className="mt-2 inline-flex items-center gap-1.5 bg-amber-950/80 border border-amber-800 text-amber-300 text-xs px-3 py-1 rounded">
             <AlertTriangle className="w-3.5 h-3.5" />
-            Machine-translated to {language.toUpperCase()}. Fact ledger values preserved.
+            Machine-translated to {effectiveLanguage.toUpperCase()}. Fact ledger values preserved.
           </div>
         )}
       </div>
 
       {/* Audio Narration Component */}
-      <AudioPlayer documentId={doc.document_id} language={language} transcriptText={currentVersion?.plain_text} />
+      <AudioPlayer
+        documentId={doc.document_id}
+        language={effectiveLanguage}
+        transcriptText={currentVersion?.plain_text}
+        hasRecording={Boolean(currentVersion?.audio_path)}
+      />
 
       {/* View Tabs */}
       <div className="space-y-4">

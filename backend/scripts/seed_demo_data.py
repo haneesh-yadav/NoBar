@@ -49,6 +49,20 @@ DEMO_SCHEMES = [
         "benefits": [{"amount_or_description": "Rs.1,000 per month", "frequency": "monthly"}],
         "required_documents": ["Aadhaar card", "Bank passbook", "Proof of age", "BPL or income certificate"],
         "application_steps": ["Apply at your local pension office or online via the official portal", "Attach age and income proof", "Receive pension into your bank account"],
+        "translations": {
+            "hi": {
+                "title": "इंदिरा गांधी राष्ट्रीय वृद्धावस्था पेंशन योजना (IGNOAPS)",
+                "summary": "60 वर्ष या उससे अधिक आयु के वरिष्ठ नागरिकों को मासिक पेंशन, जो गरीबी रेखा से नीचे (BPL) के परिवारों से आते हैं।",
+                "benefits": ["हर महीने ₹1,000 पेंशन"],
+                "note": "आवेदन के लिए आधिकारिक MyScheme वेबसाइट खोलें: myscheme.gov.in",
+            },
+            "ta": {
+                "title": "இந்திரா காந்தி தேசிய முதியோர் ஓய்வூதியத் திட்டம் (IGNOAPS)",
+                "summary": "60 வயது அல்லது அதற்கு மேலான, வறுமைக்கோட்டுக்குக் கீழ் (BPL) குடும்பங்களைச் சேர்ந்த மூத்த குடிமக்களுக்கு மாதாந்திர ஓய்வூதியம்.",
+                "benefits": ["மாதம் ₹1,000 ஓய்வூதியம்"],
+                "note": "விண்ணப்பிக்க அதிகாரப்பூர்வ MyScheme இணையதளத்தைத் திறக்கவும்: myscheme.gov.in",
+            },
+        },
     },
     {
         "title": "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
@@ -66,6 +80,20 @@ DEMO_SCHEMES = [
         "benefits": [{"amount_or_description": "Rs.6,000 per year", "frequency": "3 instalments of Rs.2,000"}],
         "required_documents": ["Aadhaar card", "Land records", "Bank account"],
         "application_steps": ["Register on the PM-KISAN portal", "Verify land records with your state", "Receive instalments into your bank account"],
+        "translations": {
+            "hi": {
+                "title": "प्रधानमंत्री किसान सम्मान निधि (PM-KISAN)",
+                "summary": "खेती योग्य भूमि वाले किसान परिवारों को हर साल ₹6,000 की आय सहायता।",
+                "benefits": ["साल में ₹6,000 (₹2,000 की 3 किश्तों में)"],
+                "note": "आवेदन के लिए आधिकारिक PM-KISAN पोर्टल देखें।",
+            },
+            "ta": {
+                "title": "பிரதம மந்திரி கிசான் சம்மான் நிதி (PM-KISAN)",
+                "summary": "விவசாய நிலம் வைத்திருக்கும் விவசாயக் குடும்பங்களுக்கு ஆண்டுக்கு ₹6,000 வருமான ஆதரவு.",
+                "benefits": ["ஆண்டுக்கு ₹6,000 (₹2,000 × 3 தவணைகள்)"],
+                "note": "விண்ணப்பிக்க அதிகாரப்பூர்வ PM-KISAN இணையதளத்தைப் பார்க்கவும்.",
+            },
+        },
     },
     {
         "title": "Sukanya Samriddhi Yojana",
@@ -84,6 +112,20 @@ DEMO_SCHEMES = [
         "benefits": [{"amount_or_description": "Tax-free savings with government-guaranteed interest", "frequency": "annual"}],
         "required_documents": ["Girl child birth certificate", "Guardian Aadhaar", "Bank/Post Office account"],
         "application_steps": ["Open the account at a bank or post office", "Deposit the minimum Rs.250 annually", "Withdraw at age 21 or for education"],
+        "translations": {
+            "hi": {
+                "title": "सुकन्या समृद्धि योजना",
+                "summary": "बालिका की शिक्षा और विवाह के लिए बचत योजना; माता-पिता या अभिभावक उसके नाम पर खाता खोलते हैं।",
+                "benefits": ["कर-मुक्त बचत और सरकार द्वारा गारंटीकृत ब्याज"],
+                "note": "बैंक या डाकघर में खाता खोलें।",
+            },
+            "ta": {
+                "title": "சுகன்யா சம்ரித்தி யோஜனா",
+                "summary": "பெண் குழந்தையின் கல்வி மற்றும் திருமணத்திற்கான சேமிப்புத் திட்டம்; பெற்றோர் அல்லது பாதுகாவலர் அவள் பெயரில் கணக்கு திறப்பார்கள்.",
+                "benefits": ["வரி இல்லாத சேமிப்பு மற்றும் அரசு உத்தரவாத வட்டி"],
+                "note": "வங்கி அல்லது தபால் நிலையத்தில் கணக்கு திறக்கவும்.",
+            },
+        },
     },
     {
         "title": "Pradhan Mantri Ujjwala Yojana",
@@ -99,6 +141,20 @@ DEMO_SCHEMES = [
         "benefits": [{"amount_or_description": "Free LPG connection with first refill and stove", "frequency": "one-time"}],
         "required_documents": ["BPL certificate", "Aadhaar", "Bank account"],
         "application_steps": ["Apply at any authorised LPG distributor", "Verify BPL status", "Get the connection installed"],
+        "translations": {
+            "hi": {
+                "title": "प्रधानमंत्री उज्ज्वला योजना",
+                "summary": "गरीबी रेखा से नीचे (BPL) के परिवारों की महिलाओं को मुफ्त एलपीजी गैस कनेक्शन।",
+                "benefits": ["मुफ्त गैस कनेक्शन, पहला सिलेंडर और स्टोव"],
+                "note": "अपने नजदीकी अधिकृत गैस वितरक से आवेदन करें।",
+            },
+            "ta": {
+                "title": "பிரதம மந்திரி உஜ்வலா யோஜனா",
+                "summary": "வறுமைக்கோட்டுக்குக் கீழ் (BPL) குடும்பங்களைச் சேர்ந்த பெண்களுக்கு இலவச எல்பிஜி சமையல் எரிவாயு இணைப்பு.",
+                "benefits": ["இலவச கேஸ் இணைப்பு, முதல் உருளை மற்றும் அடுப்பு"],
+                "note": "அருகிலுள்ள அங்கீகரிக்கப்பட்ட எரிவாயு விநியோகஸ்தரிடம் விண்ணப்பிக்கவும்.",
+            },
+        },
     },
     {
         "title": "Atal Pension Yojana (APY)",
@@ -117,6 +173,20 @@ DEMO_SCHEMES = [
         "benefits": [{"amount_or_description": "Assured monthly pension after age 60", "frequency": "monthly"}],
         "required_documents": ["Aadhaar", "Bank account", "Mobile number"],
         "application_steps": ["Enrol through your bank or post office", "Choose your pension amount", "Start receiving pension at 60"],
+        "translations": {
+            "hi": {
+                "title": "अटल पेंशन योजना (APY)",
+                "summary": "18 से 40 वर्ष की आयु के ग्राहकों को ₹1,000 से ₹5,000 तक की गारंटीकृत मासिक पेंशन।",
+                "benefits": ["60 वर्ष की आयु के बाद हर महीने पक्की पेंशन"],
+                "note": "बैंक या डाकघर में नामांकन करें।",
+            },
+            "ta": {
+                "title": "அடல் ஓய்வூதியத் திட்டம் (APY)",
+                "summary": "18–40 வயதுடைய சந்தாதாரர்களுக்கு ₹1,000 முதல் ₹5,000 வரை உத்தரவாத மாதாந்திர ஓய்வூதியம்.",
+                "benefits": ["60 வயதிற்குப் பிறகு ஒவ்வொரு மாதமும் உறுதியான ஓய்வூதியம்"],
+                "note": "வங்கி அல்லது தபால் நிலையத்தில் பதிவு செய்யவும்.",
+            },
+        },
     },
 ]
 
@@ -124,10 +194,20 @@ DEMO_SCHEMES = [
 def main() -> None:
     init_db()
     with get_session() as session:
+        force = "--force" in sys.argv
         existing = session.query(Document).filter(Document.status == "published").count()
-        if existing:
+        if existing and not force:
             print(f"Library already has {existing} published record(s) — skipping demo seed.")
             return
+        if force:
+            demo = session.query(Document).filter(Document.source_pdf_path == "demo-seed").all()
+            for d in demo:
+                session.query(SimplifiedVersion).filter(SimplifiedVersion.document_id == d.id).delete()
+                session.query(FactLedgerRecord).filter(FactLedgerRecord.document_id == d.id).delete()
+                session.query(EvaluationScore).filter(EvaluationScore.document_id == d.id).delete()
+                session.delete(d)
+            session.flush()
+            print(f"  --force: removed {len(demo)} previous demo record(s).")
 
         now = datetime.now(timezone.utc)
         for i, scheme in enumerate(DEMO_SCHEMES):
@@ -144,24 +224,39 @@ def main() -> None:
             session.add(doc)
             session.flush()
 
-            ledger = {k: v for k, v in scheme.items() if k != "scheme_url"}
+            ledger = {k: v for k, v in scheme.items() if k != "scheme_url" and k != "translations"}
             session.add(FactLedgerRecord(document_id=doc.id, ledger_json=ledger))
 
-            en_html = (
-                f"<h1>{scheme['title']}</h1><p>{scheme['summary']}</p>"
-                f"<h2>What you get</h2><ul>"
-                + "".join(f"<li>{b.get('amount_or_description', '')}</li>" for b in scheme["benefits"])
-                + f"</ul><p>See the official site for the full, current application process.</p>"
-            )
-            session.add(
-                SimplifiedVersion(
-                    document_id=doc.id,
-                    language="en",
-                    plain_text=scheme["summary"],
-                    html_output=en_html,
-                    reading_grade=6.0,
+            languages_verified = {"en": {"verified": True}}
+            translations = scheme.get("translations", {})
+            for lang_code, tr in [("en", None), *translations.items()]:
+                if lang_code == "en":
+                    display_title = scheme["title"]
+                    summary = scheme["summary"]
+                    benefit_lines = [b.get("amount_or_description", "") for b in scheme["benefits"]]
+                    note = "See the official site for the full, current application process."
+                else:
+                    display_title = tr["title"]
+                    summary = tr["summary"]
+                    benefit_lines = tr["benefits"]
+                    note = tr["note"]
+                    languages_verified[lang_code] = {"verified": True}
+                html = (
+                    f"<h1>{display_title}</h1><p>{summary}</p>"
+                    f"<h2>{'What you get' if lang_code == 'en' else ('क्या मिलता है' if lang_code == 'hi' else 'உங்களுக்கு என்ன கிடைக்கும்')}</h2><ul>"
+                    + "".join(f"<li>{line}</li>" for line in benefit_lines)
+                    + f"</ul><p>{note}</p>"
                 )
-            )
+                session.add(
+                    SimplifiedVersion(
+                        document_id=doc.id,
+                        language=lang_code,
+                        plain_text=summary,
+                        html_output=html,
+                        reading_grade=6.0 if lang_code == "en" else 0.0,
+                    )
+                )
+
             session.add(
                 EvaluationScore(
                     document_id=doc.id,
@@ -169,12 +264,16 @@ def main() -> None:
                     wcag_score=100.0,
                     readability_grade=6.0,
                     retries_used=0,
-                    checks_json={"checks": [], "missing_facts": [], "language_versions": {"en": {"verified": True}}},
+                    checks_json={
+                        "checks": [],
+                        "missing_facts": [],
+                        "language_versions": languages_verified,
+                    },
                 )
             )
-            print(f"  + seeded: {scheme['title']}")
+            print(f"  + seeded: {scheme['title']} (en/hi/ta)")
 
-    print(f"\nSeeded {len(DEMO_SCHEMES)} published schemes. Restart the backend and open the library.")
+    print(f"\nSeeded {len(DEMO_SCHEMES)} published schemes with English, Hindi & Tamil versions. Restart the backend and open the library.")
 
 
 if __name__ == "__main__":
