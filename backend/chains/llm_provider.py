@@ -48,7 +48,9 @@ class _TracedChatOllama(ChatOllama):
 
 
 @contextmanager
-def traced_generator_llm(*, agent_name: str, session_id: str, temperature: float = 0.2, **extra):
+def traced_generator_llm(
+    *, agent_name: str, session_id: str, temperature: float = 0.2, model: str | None = None, **extra
+):
     handler = get_prism_callback_handler()
     # repeat_penalty guards against a real failure mode observed with these
     # small local models: degenerating into a repeated-phrase loop (e.g.
@@ -58,7 +60,7 @@ def traced_generator_llm(*, agent_name: str, session_id: str, temperature: float
     # started. 1.3 is a mild default; callers can still override it.
     extra.setdefault("repeat_penalty", 1.3)
     llm = _TracedChatOllama(
-        model=settings.generator_model,
+        model=model or settings.generator_model,
         base_url=settings.ollama_host,
         temperature=temperature,
         callbacks=[handler] if handler else [],

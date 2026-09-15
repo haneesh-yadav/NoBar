@@ -103,6 +103,24 @@ Every scheme page now has a **View Language: EN / हिं / தமிழ்** 
 
 ---
 
+## 🤖 AI in Social Impact — "Ask NoBar" Citizen Assistant
+
+The whole app is an **AI-for-social-impact** product. Beyond the pipeline (LLM fact extraction, judge-verified plain-language rewrite, translation — all PRISM-traced), every scheme page now ships a **"Ask NoBar"** assistant: a real-time, user-facing LLM that answers a citizen's own question — "Am I eligible?", "What documents do I need?", "How much will I get?" — in **English, Hindi or Tamil**.
+
+The assistant is **grounded, not speculative**:
+- The LLM prompt carries the scheme's **verified Fact Ledger** (eligibility criteria, benefit amounts, income ceilings, document lists, application steps + deadlines) with a strict "answer only from these verified facts" rule — it never invents benefit amounts, ages, or documents. Unanswerable → it says so and points to the official site.
+- When a citizen is **signed in**, their profile (age, gender, BPL status, income, employment, state) and the **deterministic eligibility verdict** (with reasons) are injected into the prompt, so answers are personalized: *"Your profile shows you're 71, which meets the 60+ rule…"*.
+- **AI offline, answers stay trustworthy**: if the local model is missing, down, or slower than 25s, the endpoint transparently falls back to a **deterministic, intent-matched answer built directly from the judged Fact Ledger** (marked `engine: "fallback"` in the UI so provenance is honest). No Olama required for the demo.
+- Every call runs inside a PRISM session via `traced_generator_llm` + `prism_session`, so assistant traces appear in the PRISM dashboard like the pipeline itself.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/assistant/ask` | `{ document_id, question, language }` (+ optional JWT) → grounded answer with `engine`, provenance, and the deterministic `matched` verdict when signed in |
+
+Set `ASSISTANT_MODEL` (e.g. `ASSISTANT_MODEL=llama3.1:latest`) to point the assistant at any locally-pulled model; leave it empty to reuse the generator. Without a running model the endpoint still answers correctly via the fallback.
+
+---
+
 ## 🔍 PRISM Integration Checklist
 
 NoBar uses **PRISM by Block Convey**  its observability, auditability, and verification backbone:

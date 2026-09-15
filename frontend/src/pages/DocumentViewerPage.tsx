@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { TrustReport } from '../components/TrustReport';
 import { AudioPlayer } from '../components/AudioPlayer';
+import { AssistantPanel } from '../components/AssistantPanel';
 import {
   FileText,
   ArrowLeft,
@@ -335,6 +336,9 @@ export const DocumentViewerPage: React.FC<{ language: string; setLanguage: (lang
         wcagAudit={doc.wcag_audit}
         reviewReason={doc.review_reason}
       />
+
+      {/* AI citizen assistant */}
+      <AssistantPanel documentId={doc.document_id} documentTitle={doc.title} language={effectiveLanguage} />
     </div>
   );
 };

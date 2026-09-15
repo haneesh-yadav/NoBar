@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     ollama_host: str = "http://localhost:11434"
     generator_model: str = "qwen2.5:3b"
     verifier_model: str = "llama3.2:3b"
+    # Optional dedicated model for the citizen assistant. Empty means "reuse
+    # the generator model", so teams that only want to demo the assistant can
+    # point ASSISTANT_MODEL at whatever model they already have pulled locally
+    # (e.g. llama3.1:latest) without disturbing the pipeline defaults.
+    assistant_model: str = ""
+
+    @property
+    def effective_assistant_model(self) -> str:
+        return self.assistant_model or self.generator_model
 
     # --- Verification thresholds ---
     fact_fidelity_pass_threshold: float = 90.0
